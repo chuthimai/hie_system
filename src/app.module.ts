@@ -3,6 +3,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { HospitalsModule } from './modules/hospitals/hospitals.module';
+import { RecordsModule } from './modules/records/records.module';
+import { UsersModule } from './modules/users/users.module';
+import { S3Module } from './modules/s3/s3.module';
 
 @Module({
   imports: [
@@ -24,6 +28,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         migrationsRun: false,
       }),
     }),
+    HospitalsModule,
+    RecordsModule,
+    UsersModule,
+    S3Module,
   ],
   controllers: [AppController],
   providers: [AppService],
