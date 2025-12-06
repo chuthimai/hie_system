@@ -1,6 +1,12 @@
 import { Hospital } from 'src/modules/hospitals/entities/hospital.entity';
 import { User } from 'src/modules/users/entities/user.entity';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('patient-records')
 export class PatientRecord {
@@ -13,8 +19,18 @@ export class PatientRecord {
   @Column()
   hash: string;
 
-  @Column({ nullable :true })
-  blockId: string;
+  @Column({ nullable: true })
+  blockId: number;
+
+  @Column({ nullable: true })
+  transactionId: number;
+
+  @Column({
+    name: 'created_time',
+    type: 'datetime',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  createdTime: string;
 
   @Column({ name: 'patient_identifier' })
   patientIdentifier: number;

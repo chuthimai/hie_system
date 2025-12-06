@@ -7,6 +7,7 @@ import { HospitalsModule } from './modules/hospitals/hospitals.module';
 import { RecordsModule } from './modules/records/records.module';
 import { UsersModule } from './modules/users/users.module';
 import { S3Module } from './modules/s3/s3.module';
+import { EthersModule } from './modules/ethers/ethers.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { S3Module } from './modules/s3/s3.module';
     RecordsModule,
     UsersModule,
     S3Module,
+    EthersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
