@@ -3,7 +3,7 @@ import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
   identifier: number;
 
   @Column()
@@ -20,6 +20,9 @@ export class User {
 
   @Column()
   address: string;
+
+  @Column()
+  password: string;
 
   @OneToMany(() => PatientRecord, (patientRecord) => patientRecord.patient)
   patientRecords: PatientRecord[];

@@ -32,7 +32,7 @@ export class PatientRecord {
   })
   createdTime: string;
 
-  @Column({ name: 'patient_identifier' })
+  @Column({ name: 'patient_identifier', type: 'bigint', unsigned: true })
   patientIdentifier: number;
 
   @Column({ name: 'hospital_identifier' })

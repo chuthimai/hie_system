@@ -6,9 +6,4 @@ export class CreatePermissionDto {
   @Transform(({ value }) => Number(value))
   @IsNumber()
   hospitalIdentifier: number;
-
-  @IsNotEmpty()
-  @Transform(({ value }) => Number(value))
-  @IsNumber()
-  userIdentifier: number;
 }

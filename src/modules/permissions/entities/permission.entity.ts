@@ -11,11 +11,10 @@ export class Permission {
   @Column({
     name: 'expired_time',
     type: 'timestamp',
-    default: () => "CURRENT_TIMESTAMP + INTERVAL '30 minutes'",
   })
   expiredTime: Date;
 
-  @Column({ name: 'user_identifier' })
+  @Column({ name: 'user_identifier', type: 'bigint', unsigned: true })
   userIdentifier: number;
 
   @Column({ name: 'hospital_identifier' })

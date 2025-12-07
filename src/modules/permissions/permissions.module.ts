@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Permission } from './entities/permission.entity';
 import { UsersModule } from '../users/users.module';
 import { HospitalsModule } from '../hospitals/hospitals.module';
+import { PermissionsController } from './permissions.controller';
 
 @Module({
   imports: [
@@ -11,7 +12,7 @@ import { HospitalsModule } from '../hospitals/hospitals.module';
     UsersModule,
     HospitalsModule,
   ],
-  controllers: [],
+  controllers: [PermissionsController],
   providers: [PermissionService],
   exports: [TypeOrmModule, PermissionService],
 })

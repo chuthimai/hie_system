@@ -7,6 +7,7 @@ import { HttpExceptionWrapper } from 'src/helpers/wrapper';
 import { ERROR_MESSAGES } from 'src/constants/error-messages';
 import { UserService } from '../users/users.service';
 import { HospitalService } from '../hospitals/hospitals.service';
+import { identity } from 'rxjs';
 
 @Injectable()
 export class PermissionService {
@@ -30,26 +31,27 @@ export class PermissionService {
     if (!existedPatient)
       throw new HttpExceptionWrapper(ERROR_MESSAGES.PATIENT_NOT_FOUND);
 
-    return await this.permissionRepository.findOneBy({
-      userIdentifier,
-      hospitalIdentifier,
+    return await this.permissionRepository.findOne({
+      where: { userIdentifier, hospitalIdentifier },
+      order: { identifier: 'DESC' },
     });
   }
 
-  async create(createPermissionDto: CreatePermissionDto): Promise<Permission> {
+  async create(
+    createPermissionDto: CreatePermissionDto,
+    userIdentifier: number,
+  ): Promise<Permission> {
     const existedHospital = await this.hospitalService.findOne(
       createPermissionDto.hospitalIdentifier,
     );
     if (!existedHospital)
       throw new HttpExceptionWrapper(ERROR_MESSAGES.HOSPITAL_NOT_FOUND);
 
-    const existedPatient = await this.userService.findOne(
-      createPermissionDto.userIdentifier,
-    );
-    if (!existedPatient)
-      throw new HttpExceptionWrapper(ERROR_MESSAGES.PATIENT_NOT_FOUND);
-
-    const permission = this.permissionRepository.create(createPermissionDto);
+    const permission = this.permissionRepository.create({
+      userIdentifier,
+      hospitalIdentifier: createPermissionDto.hospitalIdentifier,
+      expiredTime: new Date(Date.now() + 30 * 60 * 1000),
+    });
     return await this.permissionRepository.save(permission);
   }
 }

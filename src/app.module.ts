@@ -9,6 +9,7 @@ import { UsersModule } from './modules/users/users.module';
 import { S3Module } from './modules/s3/s3.module';
 import { EthersModule } from './modules/ethers/ethers.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { PermissionsModule } from './modules/permissions/permissions.module';
     PermissionsModule,
     S3Module,
     EthersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
