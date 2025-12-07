@@ -27,19 +27,14 @@ export class S3Service {
     this.bucket = this.configService.get<string>('AWS_S3_BUCKET') ?? '';
   }
 
-  async uploadBuffer(
-    fileName: string,
-    file: Express.Multer.File,
-  ): Promise<boolean> {
+  async uploadBuffer(fileName: string, fileBuffer: Buffer): Promise<void> {
     const putObjectCommand = new PutObjectCommand({
       Bucket: this.bucket,
       Key: fileName,
-      Body: file.buffer,
-      ContentType: file.mimetype,
+      Body: fileBuffer,
+      ContentType: 'application/pdf',
     });
-
     await this.s3.send(putObjectCommand);
-    return true;
   }
 
   async getSignedUrl(fileName: string): Promise<string> {
@@ -47,15 +42,12 @@ export class S3Service {
       Bucket: this.bucket,
       Key: fileName,
     });
-
     return await getSignedUrl(this.s3, getObjectCommand, {
       expiresIn: 3600,
     });
   }
 
-  async getFileWithMetadata(fileName: string): Promise<{
-    buffer: Buffer;
-  } | null> {
+  async getFileWithMetadata(fileName: string): Promise<Buffer | null> {
     const getObjectCommand = new GetObjectCommand({
       Bucket: this.bucket,
       Key: fileName,
@@ -70,7 +62,6 @@ export class S3Service {
       chunks.push(Buffer.from(chunk));
     }
 
-    const buffer = Buffer.concat(chunks);
-    return { buffer };
+    return Buffer.concat(chunks);
   }
 }

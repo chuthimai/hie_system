@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Hospital } from './entities/hospital.entity';
 
 @Injectable()
-export class HospitalsService {
+export class HospitalService {
   constructor(
     @InjectRepository(Hospital)
     private readonly hospitalRepository: Repository<Hospital>,
@@ -12,5 +12,9 @@ export class HospitalsService {
 
   async findOne(identifier: number): Promise<Hospital | null> {
     return this.hospitalRepository.findOneBy({ identifier });
+  }
+
+  async findAll(): Promise<Hospital[]> {
+    return await this.hospitalRepository.find();
   }
 }

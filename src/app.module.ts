@@ -8,6 +8,7 @@ import { RecordsModule } from './modules/records/records.module';
 import { UsersModule } from './modules/users/users.module';
 import { S3Module } from './modules/s3/s3.module';
 import { EthersModule } from './modules/ethers/ethers.module';
+import { PermissionsModule } from './modules/permissions/permissions.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { EthersModule } from './modules/ethers/ethers.module';
     HospitalsModule,
     RecordsModule,
     UsersModule,
+    PermissionsModule,
     S3Module,
     EthersModule,
   ],

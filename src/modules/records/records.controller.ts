@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  Param,
   Post,
   UploadedFile,
   UseInterceptors,
@@ -10,16 +9,17 @@ import {
 import { RecordsService } from './records.service';
 import { FileUploadInterceptor } from 'src/interceptors/file-upload.interceptor';
 import { CreateRecordDto } from './dto/create-record.dto';
+import { GetRecordsByPatientDto } from './dto/get-records-by-patient.dto';
 
 @Controller('records')
 export class RecordsController {
   constructor(private readonly recordsService: RecordsService) {}
 
-  @Get('/')
+  @Post('/by-patient')
   getAllsByPatientIdentifier(
-    @Param('patientIdentifier') patientIdentifier: number,
+    @Body() getRecordsByPatient: GetRecordsByPatientDto,
   ) {
-    return this.recordsService.findAllByPatientIdentifier(patientIdentifier);
+    return this.recordsService.findAllByPatient(getRecordsByPatient);
   }
 
   @Post('/')
