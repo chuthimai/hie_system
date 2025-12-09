@@ -8,12 +8,12 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: process.env.ORIGIN_URL,
+    origin: process.env.ORIGIN_URL?.split(",") ?? [],
     methods: process.env.AVAILABLE_METHODS,
     credentials: true,
   });
 
-  await app.listen(process.env.PORT ?? 3333);
+  await app.listen(process.env.PORT ?? 3000);
   console.log(`🚀 App running on ${process.env.SOURCE_URL}`);
 }
 bootstrap();
