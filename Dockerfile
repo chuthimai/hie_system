@@ -20,4 +20,4 @@ RUN npm run build
 EXPOSE 3000
 
 # 8. Lệnh khởi chạy
-CMD sh -c "npm run start"
+CMD sh -c "npm run typeorm:run-migration && npm run seed && npm run start"
