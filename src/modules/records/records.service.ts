@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { PatientRecord } from './entities/patient-record.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateRecordDto } from './dto/create-record.dto';
@@ -8,11 +8,10 @@ import { ERROR_MESSAGES } from 'src/constants/error-messages';
 import { HospitalService } from '../hospitals/hospitals.service';
 import { UserService } from '../users/users.service';
 import { S3Service } from '../s3/s3.services';
-import { keccak256, solidityPacked } from 'ethers';
 import { getCurrentDateTime } from 'src/helpers/converter';
 import { GetRecordsByPatientDto } from './dto/get-records-by-patient.dto';
 import { PermissionService } from '../permissions/permissions.service';
-import { PDFDocument } from 'pdf-lib';
+import { EthersService } from '../ethers/ethers.service';
 
 @Injectable()
 export class RecordsService {
@@ -23,6 +22,7 @@ export class RecordsService {
     private readonly userService: UserService,
     private readonly permissionService: PermissionService,
     private readonly s3Service: S3Service,
+    private readonly etherService: EthersService,
   ) {}
 
   async findOne(identifier: number): Promise<PatientRecord | null> {
@@ -37,6 +37,8 @@ export class RecordsService {
     return await this.patientRecordRepository.find({
       where: {
         patientIdentifier,
+        blockId: Not(IsNull()),
+        transactionId: Not(IsNull()),
       },
       relations: ['hospital'],
     });
@@ -44,7 +46,7 @@ export class RecordsService {
 
   async findAllByCurrentUser(userIdentifier: number): Promise<PatientRecord[]> {
     const records = await this.findAllByPatientIdentifier(userIdentifier);
-    const isValid = await this.validRecord(records);
+    const isValid = await this.validRecords(records);
     if (!isValid) {
       throw new HttpExceptionWrapper(ERROR_MESSAGES.RECORD_MODIFIED);
     }
@@ -73,7 +75,7 @@ export class RecordsService {
     const records = await this.findAllByPatientIdentifier(
       getRecordsByPatient.patientIdentifier,
     );
-    const isValid = await this.validRecord(records);
+    const isValid = await this.validRecords(records);
     if (!isValid) {
       throw new HttpExceptionWrapper(ERROR_MESSAGES.RECORD_MODIFIED);
     }
@@ -86,29 +88,10 @@ export class RecordsService {
     );
   }
 
-  async validRecord(records: PatientRecord[]): Promise<boolean> {
-    const fileList: Buffer[] = [];
-    for (const record of records) {
-      const fileWithMeta = (await this.s3Service.getFileWithMetadata(
-        record.name,
-      )) as Buffer;
-
-      const targetHash = this.hashInfo(
-        record.hospitalIdentifier,
-        record.patientIdentifier,
-        fileWithMeta,
-      );
-      if (targetHash === record.hash) fileList.push(fileWithMeta);
-      else break;
-    }
-
-    return fileList.length == records.length;
-  }
-
   async createRecord(
     createRecordDto: CreateRecordDto,
     record: Express.Multer.File,
-  ): Promise<{ fileId: number; fileHash: string }> {
+  ): Promise<{ fileId: number; fileHash: string; fileSignature: string }> {
     const existedHospital = await this.hospitalService.findOne(
       createRecordDto.hospitalIdentifier,
     );
@@ -123,11 +106,12 @@ export class RecordsService {
 
     const fileName = `record_${createRecordDto.patientIdentifier}_${getCurrentDateTime()}.pdf`;
     const fileBuffer = Buffer.from(record.buffer);
-    const fileHash = this.hashInfo(
+    const fileHash = this.etherService.hashPayload(
       createRecordDto.hospitalIdentifier,
       createRecordDto.patientIdentifier,
       fileBuffer,
     );
+    const fileSignature = await this.etherService.signPayload(fileHash);
 
     const newPatientRecord = this.patientRecordRepository.create({
       name: fileName,
@@ -138,7 +122,7 @@ export class RecordsService {
     await this.patientRecordRepository.save(newPatientRecord);
     await this.s3Service.uploadBuffer(fileName, fileBuffer);
 
-    return { fileId: newPatientRecord.identifier, fileHash };
+    return { fileId: newPatientRecord.identifier, fileHash, fileSignature };
   }
 
   async updateRecord(
@@ -160,15 +144,22 @@ export class RecordsService {
     await this.patientRecordRepository.save(existedRecord);
   }
 
-  hashInfo(
-    hospitalIdentifier: number,
-    patientIdentifier: number,
-    record: Buffer,
-  ): string {
-    const packed = solidityPacked(
-      ['uint256', 'uint256', 'bytes'],
-      [hospitalIdentifier, patientIdentifier, `0x${record.toString('hex')}`],
-    );
-    return keccak256(packed);
+  async validRecords(records: PatientRecord[]): Promise<boolean> {
+    const fileList: Buffer[] = [];
+    for (const record of records) {
+      const fileWithMeta = (await this.s3Service.getFileWithMetadata(
+        record.name,
+      )) as Buffer;
+
+      const targetHash = this.etherService.hashPayload(
+        record.hospitalIdentifier,
+        record.patientIdentifier,
+        fileWithMeta,
+      );
+      if (targetHash === record.hash) fileList.push(fileWithMeta);
+      else break;
+    }
+
+    return fileList.length == records.length;
   }
 }

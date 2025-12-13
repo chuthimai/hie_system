@@ -7,6 +7,7 @@ import { HospitalsModule } from '../hospitals/hospitals.module';
 import { UsersModule } from '../users/users.module';
 import { S3Module } from '../s3/s3.module';
 import { PermissionsModule } from '../permissions/permissions.module';
+import { EthersModule } from '../ethers/ethers.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { PermissionsModule } from '../permissions/permissions.module';
     UsersModule,
     PermissionsModule,
     S3Module,
+    EthersModule,
   ],
   controllers: [RecordsController],
   providers: [RecordsService],
