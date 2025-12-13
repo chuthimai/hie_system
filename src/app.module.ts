@@ -3,6 +3,13 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { HospitalsModule } from './modules/hospitals/hospitals.module';
+import { RecordsModule } from './modules/records/records.module';
+import { UsersModule } from './modules/users/users.module';
+import { S3Module } from './modules/s3/s3.module';
+import { EthersModule } from './modules/ethers/ethers.module';
+import { PermissionsModule } from './modules/permissions/permissions.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -24,6 +31,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         migrationsRun: false,
       }),
     }),
+    HospitalsModule,
+    RecordsModule,
+    UsersModule,
+    PermissionsModule,
+    S3Module,
+    EthersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
