@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { Hospital } from 'src/modules/hospitals/entities/hospital.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
@@ -16,12 +17,15 @@ export class PatientRecord {
   @Column()
   name: string;
 
+  @Exclude()
   @Column()
   hash: string;
 
+  @Exclude()
   @Column({ nullable: true })
   blockId: number;
 
+  @Exclude()
   @Column({ nullable: true })
   transactionId: number;
 
@@ -32,9 +36,11 @@ export class PatientRecord {
   })
   createdTime: string;
 
+  @Exclude()
   @Column({ name: 'patient_identifier', type: 'bigint', unsigned: true })
   patientIdentifier: number;
 
+  @Exclude()
   @Column({ name: 'hospital_identifier' })
   hospitalIdentifier: number;
 
@@ -51,4 +57,6 @@ export class PatientRecord {
     referencedColumnName: 'identifier',
   })
   hospital: Hospital;
+
+  link?: string;
 }

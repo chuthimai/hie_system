@@ -31,9 +31,35 @@ export class RecordsService {
     });
   }
 
-  async findAllByPatient(
+  async findAllByPatientIdentifier(
+    patientIdentifier: number,
+  ): Promise<PatientRecord[]> {
+    return await this.patientRecordRepository.find({
+      where: {
+        patientIdentifier,
+      },
+      relations: ['hospital'],
+    });
+  }
+
+  async findAllByCurrentUser(userIdentifier: number): Promise<PatientRecord[]> {
+    const records = await this.findAllByPatientIdentifier(userIdentifier);
+    const isValid = await this.validRecord(records);
+    if (!isValid) {
+      throw new HttpExceptionWrapper(ERROR_MESSAGES.RECORD_MODIFIED);
+    }
+
+    return await Promise.all(
+      records.map(async (record) => {
+        record.link = await this.s3Service.getSignedUrl(record.name);
+        return record;
+      }),
+    );
+  }
+
+  async findAllByCondition(
     getRecordsByPatient: GetRecordsByPatientDto,
-  ): Promise<any> {
+  ): Promise<PatientRecord[]> {
     const existedPermission =
       await this.permissionService.findOneByUserAndHospital(
         getRecordsByPatient.patientIdentifier,
@@ -44,11 +70,23 @@ export class RecordsService {
     else if (existedPermission.expiredTime < new Date())
       throw new HttpExceptionWrapper(ERROR_MESSAGES.PERMISSION_EXPIRED);
 
-    const records = await this.patientRecordRepository.findBy({
-      hospitalIdentifier: getRecordsByPatient.hospitalIdentifier,
-      patientIdentifier: getRecordsByPatient.patientIdentifier,
-    });
+    const records = await this.findAllByPatientIdentifier(
+      getRecordsByPatient.patientIdentifier,
+    );
+    const isValid = await this.validRecord(records);
+    if (!isValid) {
+      throw new HttpExceptionWrapper(ERROR_MESSAGES.RECORD_MODIFIED);
+    }
 
+    return await Promise.all(
+      records.map(async (record) => {
+        record.link = await this.s3Service.getSignedUrl(record.name);
+        return record;
+      }),
+    );
+  }
+
+  async validRecord(records: PatientRecord[]): Promise<boolean> {
     const fileList: Buffer[] = [];
     for (const record of records) {
       const fileWithMeta = (await this.s3Service.getFileWithMetadata(
@@ -64,14 +102,7 @@ export class RecordsService {
       else break;
     }
 
-    if (fileList.length !== records.length)
-      throw new HttpExceptionWrapper(ERROR_MESSAGES.RECORD_MODIFIED);
-
-    const finalFileName = `records_${getRecordsByPatient.patientIdentifier}_${getCurrentDateTime()}.pdf`;
-    const finalFileBuffer = await this.mergeBuffers(fileList);
-
-    await this.s3Service.uploadBuffer(finalFileName, finalFileBuffer);
-    return await this.s3Service.getSignedUrl(finalFileName);
+    return fileList.length == records.length;
   }
 
   async createRecord(
@@ -139,18 +170,5 @@ export class RecordsService {
       [hospitalIdentifier, patientIdentifier, `0x${record.toString('hex')}`],
     );
     return keccak256(packed);
-  }
-
-  async mergeBuffers(fileList: Buffer[]): Promise<Buffer> {
-    const mergedPdf = await PDFDocument.create();
-
-    for (const pdfBytes of fileList) {
-      const pdf = await PDFDocument.load(pdfBytes);
-      const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-      copiedPages.forEach((p) => mergedPdf.addPage(p));
-    }
-
-    await mergedPdf.save();
-    return Buffer.from(await mergedPdf.save());
   }
 }
