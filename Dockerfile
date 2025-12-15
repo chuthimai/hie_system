@@ -17,7 +17,7 @@ COPY . .
 RUN npm run build
 
 # 7. Mở cổng
-EXPOSE 3000
+EXPOSE 3333
 
 # 8. Lệnh khởi chạy
 CMD sh -c "npm run typeorm:run-migration && npm run seed && npm run start"

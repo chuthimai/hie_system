@@ -51,7 +51,7 @@ jobs:
 
 
             # Chạy container mới
-            docker run -d -p 3555:3000 \
+            docker run -d -p 3555:3333 \
               --name nestjs-hie \
               --env=DB_HOST=${{ secrets.DB_HOST }} \
               --env=DB_PORT=3306 \
