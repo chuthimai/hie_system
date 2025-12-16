@@ -1,6 +1,10 @@
 # 1. Base image
 FROM node:20
 
+# disable ssl verification inside node
+ENV NODE_TLS_REJECT_UNAUTHORIZED=0
+ENV CURL_SSL_NO_VERIFY=1
+
 # 2. Tạo thư mục làm việc trong container
 WORKDIR /app
 

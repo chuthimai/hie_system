@@ -1,15 +1,25 @@
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as dotenv from 'dotenv';
-import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
+import { ClassSerializerInterceptor, Logger, ValidationPipe } from '@nestjs/common';
 
 dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  Logger.overrideLogger(['log','debug','error','warn','verbose']);
+  Logger.overrideLogger(true);
+  Logger.log('LOGGER LOG WORKING >>>>>>');
+  console.log('CONSOLE LOG WORKING >>>>>>');
+
+  app.use((req: Request, res: Response, next) => {
+    console.log('===TRIGGER GLOBAL MIDDLEWARE===');
+    next();
+  });
+
   app.enableCors({
-    origin: process.env.ORIGIN_URL?.split(",") ?? [],
+    origin: process.env.ORIGIN_URL,
     methods: process.env.AVAILABLE_METHODS,
     credentials: true,
   });
